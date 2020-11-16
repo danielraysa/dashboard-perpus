@@ -18,4 +18,5 @@ Route::get('/', function () {
 });
 
 Route::get('/graph-data', 'DashboardController@graph_data')->name('graph-data');
+Route::get('/graph-kunjungan', 'DashboardController@graph_kunjungan')->name('graph-kunjungan');
 Route::get('/graph-detail', 'DashboardController@detail_graph')->name('graph-detail');
