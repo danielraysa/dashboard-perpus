@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('chart');
 });
+
+Route::get('/graph-data', 'DashboardController@graph_data')->name('graph-data');
+Route::get('/graph-detail', 'DashboardController@detail_graph')->name('graph-detail');
