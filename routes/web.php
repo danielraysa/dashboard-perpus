@@ -13,10 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('chart');
-});
-
+Route::get('/', 'DashboardController@index')->name('home');
+Route::get('/koleksi', 'DashboardController@koleksi')->name('koleksi');
+Route::get('/pinjaman', 'DashboardController@pinjaman')->name('pinjaman');
+Route::get('/kunjungan', 'DashboardController@kunjungan')->name('kunjungan');
+Route::get('/graph-data', 'DashboardController@graph_data')->name('graph-data');
 Route::get('/graph-data', 'DashboardController@graph_data')->name('graph-data');
 Route::get('/graph-kunjungan', 'DashboardController@graph_kunjungan')->name('graph-kunjungan');
-Route::get('/graph-detail', 'DashboardController@detail_graph')->name('graph-detail');
+Route::get('/graph-pinjaman', 'DashboardController@graph_pinjaman')->name('graph-pinjaman');
