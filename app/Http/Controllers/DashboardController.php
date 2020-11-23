@@ -42,9 +42,12 @@ class DashboardController extends Controller
             $thn_skrg = $request->pilih_tahun;
             $koleksi = Koleksi::select(DB::raw("MONTH(tgl_cetak) AS bln"), DB::raw("DATE_FORMAT(tgl_cetak, '%b') AS bulan"), DB::raw("COUNT(*) AS total"))->groupBy(DB::raw("MONTH(tgl_cetak)"), DB::raw("DATE_FORMAT(tgl_cetak, '%b')"))->whereRaw("YEAR(tgl_cetak) = '".$thn_skrg."'")->orderBy(DB::raw("MONTH(tgl_cetak)"))->get();
         }
+        if(isset($request->tgl_awal)){
+            $tgl_awal = $request->tgl_awal;
+            $tgl_akhir = $request->tgl_akhir;
+            $koleksi = Koleksi::select(DB::raw("YEAR(tgl_cetak) AS tahun"), DB::raw("COUNT(*) AS total"))->whereBetween("tgl_cetak", [$tgl_awal, $tgl_akhir])->groupBy(DB::raw("YEAR(tgl_cetak)"))->orderBy(DB::raw("YEAR(tgl_cetak)"))->get();
+        }
         // dd($koleksi);
-        // $pinjaman = Pinjaman::all();
-        // $kunjungan = Kunjungan::all();
         return response()->json($koleksi);
     }
 
@@ -54,6 +57,11 @@ class DashboardController extends Controller
         if(isset($request->pilih_tahun)){
             $thn = $request->pilih_tahun;
             $kunjungan = Kunjungan::select(DB::raw("MONTH(waktu_masuk) AS bln"), DB::raw("DATE_FORMAT(waktu_masuk, '%b') AS bulan"), DB::raw("COUNT(*) AS total"))->groupBy(DB::raw("MONTH(waktu_masuk)"), DB::raw("DATE_FORMAT(waktu_masuk, '%b')"))->whereRaw("YEAR(waktu_masuk) = '".$thn."'")->orderBy(DB::raw("MONTH(waktu_masuk)"))->get();
+        }
+        if(isset($request->tgl_awal)){
+            $tgl_awal = $request->tgl_awal;
+            $tgl_akhir = $request->tgl_akhir;
+            $kunjungan = Kunjungan::select(DB::raw("YEAR(waktu_masuk) AS tahun"), DB::raw("COUNT(*) AS total"))->whereBetween("waktu_masuk", [$tgl_awal, $tgl_akhir])->groupBy(DB::raw("YEAR(waktu_masuk)"))->orderBy(DB::raw("YEAR(waktu_masuk)"))->get();
         }
         // $kunjungan = Kunjungan::all();
         return response()->json($kunjungan);
@@ -77,6 +85,11 @@ class DashboardController extends Controller
         if(isset($request->pilih_tahun)){
             $thn = $request->pilih_tahun;
             $pinjaman = Pinjaman::select(DB::raw("MONTH(tgl_pinjam) AS bln"), DB::raw("DATE_FORMAT(tgl_pinjam, '%b') AS bulan"), DB::raw("COUNT(*) AS total"))->groupBy(DB::raw("MONTH(tgl_pinjam)"), DB::raw("DATE_FORMAT(tgl_pinjam, '%b')"))->whereRaw("YEAR(tgl_pinjam) = '".$thn."'")->orderBy(DB::raw("MONTH(tgl_pinjam)"))->get();
+        }
+        if(isset($request->tgl_awal)){
+            $tgl_awal = $request->tgl_awal;
+            $tgl_akhir = $request->tgl_akhir;
+
         }
         // dd($pinjaman);
         return response()->json($temp);

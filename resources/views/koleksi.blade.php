@@ -7,9 +7,27 @@
                 <h3 class="card-title">Penambahan Koleksi</h3>
             </div>
             <div class="card-body">
-                <div class="chart">
-                    <canvas id="barChart"
-                        style="min-height: 350px; max-width: 100%;"></canvas>
+                {{-- <form action="{{ route('koleksi') }}" method="GET"> --}}
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Tanggal awal</label>
+                            <input type="date" name="tgl_awal" id="tgl_awal" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Tanggal akhir</label>
+                            <input type="date" name="tgl_akhir" id="tgl_akhir" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <button type="button" id="filter" name="filter" class="btn btn-success"><i class="fas fa-search"></i> Filter</button>
+                    </div>
+                </div>
+                {{-- </form> --}}
+                <div class="chart" id="main-chart">
+                    <canvas id="barChart" style="min-height: 350px; max-width: 100%;"></canvas>
                 </div>
             </div>
         </div>
@@ -29,7 +47,7 @@
     var jml_koleksi = [];
     var tahun_kunjungan = [];
     var jml_kunjungan = [];
-    var detailChart;
+    var barChart, detailChart;
 
     $.ajax({
         async: false,
@@ -45,11 +63,11 @@
         }
     });
 
-    var barChartCanvas = $('#barChart').get(0).getContext('2d');
+    var barChartCanvas = $('#barChart');
     var barChartOptions = {
-        responsive              : true,
-        maintainAspectRatio     : false,
-        datasetFill             : false,
+        responsive: true,
+        maintainAspectRatio: false,
+        datasetFill: false,
         scales: {
             yAxes: [{
                 ticks: {
@@ -60,21 +78,37 @@
         onClick: graphBarEvent
     }
 
+    var ctx = $('#barDetailChart');
+    var barOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        datasetFill: false,
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+    }
+
+    // var detailChart = new Chart();
+
     var barChart = new Chart(barChartCanvas, {
         type: 'bar',
         data: {
             labels: tahun_koleksi,
             datasets: [
                 {
-                    label               : 'Koleksi',
-                    backgroundColor     : 'rgba(60,141,188,0.9)',
-                    borderColor         : 'rgba(60,141,188,0.8)',
-                    pointRadius          : false,
-                    pointColor          : '#3b8bba',
-                    pointStrokeColor    : 'rgba(60,141,188,1)',
-                    pointHighlightFill  : '#fff',
+                    label: 'Koleksi',
+                    backgroundColor: 'rgba(60,141,188,0.9)',
+                    borderColor: 'rgba(60,141,188,0.8)',
+                    pointRadius: false,
+                    pointColor: '#3b8bba',
+                    pointStrokeColor: 'rgba(60,141,188,1)',
+                    pointHighlightFill: '#fff',
                     pointHighlightStroke: 'rgba(60,141,188,1)',
-                    data                : jml_koleksi
+                    data: jml_koleksi
                 }
             ]
         },
@@ -112,10 +146,10 @@
 
     function rebuildChart(label, nama, jumlah)
     {
-        $('#barDetailChart').remove();
-        $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
+        // $('#barDetailChart').remove();
+        // $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
 
-        var ctx = $('#barDetailChart').get(0).getContext('2d');
+        /* var ctx = $('#barDetailChart');
         var barOptions = {
             responsive              : true,
             maintainAspectRatio     : false,
@@ -127,9 +161,11 @@
                     }
                 }]
             },
+        } */
+        if(detailChart != null){
+            detailChart.destroy();
         }
-
-        var detailChart = new Chart(ctx, {
+        detailChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: label,
@@ -151,6 +187,50 @@
         });
         $('#modalDetail').modal('show');
     }
+
+    $('#filter').click(function(){
+        var awal = $('#tgl_awal').val();
+        var akhir = $('#tgl_akhir').val();
+
+        $.ajax({
+            async: false,
+            url: "{{ route('graph-data') }}",
+            type: "GET",
+            data: {tgl_awal: awal, tgl_akhir: akhir},
+            success: function(result){
+                console.log('per tahun');
+                console.log(result);
+                tahun_koleksi = [];
+                jml_koleksi = [];
+                for(var x in result){
+                    tahun_koleksi.push(result[x].tahun);
+                    jml_koleksi.push(result[x].total);
+                }
+            }
+        });
+
+        barChart.destroy();
+        barChart = new Chart(barChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: tahun_koleksi,
+                datasets: [
+                    {
+                        label               : 'Koleksi',
+                        backgroundColor     : 'rgba(60,141,188,0.9)',
+                        borderColor         : 'rgba(60,141,188,0.8)',
+                        pointRadius          : false,
+                        pointColor          : '#3b8bba',
+                        pointStrokeColor    : 'rgba(60,141,188,1)',
+                        pointHighlightFill  : '#fff',
+                        pointHighlightStroke: 'rgba(60,141,188,1)',
+                        data                : jml_koleksi
+                    }
+                ]
+            },
+            options: barChartOptions
+        });
+    });
 
 </script>
 @endpush

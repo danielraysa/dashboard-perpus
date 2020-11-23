@@ -8,7 +8,24 @@
 
             </div>
             <div class="card-body">
-                <div class="chart">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Tanggal awal</label>
+                            <input type="date" name="tgl_awal" id="tgl_awal" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label>Tanggal akhir</label>
+                            <input type="date" name="tgl_akhir" id="tgl_akhir" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <button type="button" id="filter" name="filter" class="btn btn-success"><i class="fas fa-search"></i> Filter</button>
+                    </div>
+                </div>
+                <div class="chart" id="main-chart">
                     <canvas id="kunjunganChart"
                         style="min-height: 350px; max-width: 100%;"></canvas>
                 </div>
@@ -31,7 +48,7 @@
     var jml_koleksi = [];
     var tahun_kunjungan = [];
     var jml_kunjungan = [];
-    var detailChart;
+    var kunjunganChart, detailChart;
 
 
     $.ajax({
@@ -48,7 +65,7 @@
         }
     });
 
-    var kunjunganChartCanvas = $('#kunjunganChart').get(0).getContext('2d');
+    var kunjunganChartCanvas = $('#kunjunganChart');
     var kunjunganChart = new Chart(kunjunganChartCanvas, {
         type: 'bar',
         data: {
@@ -82,6 +99,20 @@
         }
     });
 
+    var ctx = $('#barDetailChart');
+    var barOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        datasetFill: false,
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+    }
+
     function kunjunganBarEvent(event){
         var activePoints = kunjunganChart.getElementsAtEvent(event);
         console.log(activePoints);
@@ -94,6 +125,7 @@
             // alert(value);
             // $('#modal_list').text('Daftar Aset pada '+label);
             $.ajax({
+                async: false,
                 url: "{{ route('graph-kunjungan') }}",
                 type: "GET",
                 data: {pilih_tahun: label},
@@ -113,38 +145,28 @@
 
     function rebuildChart(label, nama, jumlah)
     {
-        $('#barDetailChart').remove();
-        $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
+        // $('#barDetailChart').remove();
+        // $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
 
-        var ctx = $('#barDetailChart').get(0).getContext('2d');
-        var barOptions = {
-            responsive              : true,
-            maintainAspectRatio     : false,
-            datasetFill             : false,
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            },
+        if(detailChart != null){
+            detailChart.destroy();
         }
 
-        var detailChart = new Chart(ctx, {
+        detailChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: label,
                 datasets: [
                     {
-                        label               : nama,
-                        backgroundColor     : 'rgba(60,141,188,0.9)',
-                        borderColor         : 'rgba(60,141,188,0.8)',
-                        pointRadius          : false,
-                        pointColor          : '#3b8bba',
-                        pointStrokeColor    : 'rgba(60,141,188,1)',
-                        pointHighlightFill  : '#fff',
+                        label: nama,
+                        backgroundColor: 'rgba(60,141,188,0.9)',
+                        borderColor: 'rgba(60,141,188,0.8)',
+                        pointRadius: false,
+                        pointColor: '#3b8bba',
+                        pointStrokeColor: 'rgba(60,141,188,1)',
+                        pointHighlightFill: '#fff',
                         pointHighlightStroke: 'rgba(60,141,188,1)',
-                        data                : jumlah
+                        data: jumlah
                     }
                 ]
             },
@@ -152,6 +174,51 @@
         });
         $('#modalDetail').modal('show');
     }
+
+    $('#filter').click(function(){
+        var awal = $('#tgl_awal').val();
+        var akhir = $('#tgl_akhir').val();
+
+        $.ajax({
+            async: false,
+            url: "{{ route('graph-kunjungan') }}",
+            type: "GET",
+            data: {tgl_awal: awal, tgl_akhir: akhir},
+            success: function(result){
+                console.log('per tahun');
+                console.log(result);
+                tahun_kunjungan = [];
+                jml_kunjungan = [];
+                for(var x in result){
+                    tahun_kunjungan.push(result[x].tahun);
+                    jml_kunjungan.push(result[x].total);
+                }
+            }
+        });
+
+        kunjunganChart.destroy();
+        kunjunganChart = new Chart(kunjunganChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: tahun_kunjungan,
+                datasets: [
+                    {
+                        label: 'Koleksi',
+                        backgroundColor: 'rgba(60,141,188,0.9)',
+                        borderColor: 'rgba(60,141,188,0.8)',
+                        pointRadius: false,
+                        pointColor: '#3b8bba',
+                        pointStrokeColor: 'rgba(60,141,188,1)',
+                        pointHighlightFill: '#fff',
+                        pointHighlightStroke: 'rgba(60,141,188,1)',
+                        data: jml_kunjungan
+                    }
+                ]
+            },
+            options: kunjunganBarEvent
+        });
+    });
+
 
 </script>
 @endpush
