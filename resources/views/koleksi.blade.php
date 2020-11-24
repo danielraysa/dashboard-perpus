@@ -61,6 +61,22 @@
 
     var barChartCanvas = $('#barChart');
     var barChartOptions = {
+        /* plugins: {
+            datalabels: {
+                color: 'blue',
+                anchor: 'end',
+                labels: {
+                    title: {
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    value: {
+                        color: 'green'
+                    }
+                }
+            }
+        }, */
         responsive: true,
         maintainAspectRatio: false,
         datasetFill: false,
@@ -112,6 +128,8 @@
     });
 
     function graphBarEvent(event){
+        var awal = $('#tgl_awal').val();
+        var akhir = $('#tgl_akhir').val();
         var activePoints = barChart.getElementsAtEvent(event);
         console.log(activePoints);
         if (activePoints[0]) {
@@ -125,7 +143,7 @@
             $.ajax({
                 url: "{{ route('graph-data') }}",
                 type: "GET",
-                data: {pilih_tahun: label},
+                data: {pilih_tahun: label, tgl_awal: awal, tgl_akhir: akhir},
                 success: function(result) {
                     console.log(result);
                     var bulan_koleksi = [];

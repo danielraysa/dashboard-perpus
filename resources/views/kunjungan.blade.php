@@ -109,6 +109,8 @@
     }
 
     function kunjunganBarEvent(event){
+        var awal = $('#tgl_awal').val();
+        var akhir = $('#tgl_akhir').val();
         var activePoints = kunjunganChart.getElementsAtEvent(event);
         console.log(activePoints);
         if (activePoints[0]) {
@@ -123,7 +125,7 @@
                 async: false,
                 url: "{{ route('graph-kunjungan') }}",
                 type: "GET",
-                data: {pilih_tahun: label},
+                data: {pilih_tahun: label, tgl_awal: awal, tgl_akhir: akhir},
                 success: function(result) {
                     console.log(result);
                     var bulan_koleksi = [];

@@ -162,8 +162,6 @@
 
     function rebuildChart(label, nama, jumlah)
     {
-        // $('#barDetailChart').remove();
-        // $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
         if(detailChart != null){
             detailChart.destroy();
         }
