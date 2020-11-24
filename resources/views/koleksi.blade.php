@@ -40,13 +40,9 @@
 @endsection
 @push('js')
 <script>
-    var bgColor = ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de', '#ec5858', '#34626c', '#5c6e91'];
-    var label_prodi = [];
-    var kol_prodi = [];
+
     var tahun_koleksi = [];
     var jml_koleksi = [];
-    var tahun_kunjungan = [];
-    var jml_kunjungan = [];
     var barChart, detailChart;
 
     $.ajax({

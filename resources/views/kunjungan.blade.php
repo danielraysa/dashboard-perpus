@@ -41,15 +41,9 @@
 @endsection
 @push('js')
 <script>
-    var bgColor = ['#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc', '#d2d6de', '#ec5858', '#34626c', '#5c6e91'];
-    var label_prodi = [];
-    var kol_prodi = [];
-    var tahun_koleksi = [];
-    var jml_koleksi = [];
     var tahun_kunjungan = [];
     var jml_kunjungan = [];
     var kunjunganChart, detailChart;
-
 
     $.ajax({
         async: false,
@@ -66,6 +60,19 @@
     });
 
     var kunjunganChartCanvas = $('#kunjunganChart');
+    var kunjunganChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        datasetFill: false,
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+        onClick: kunjunganBarEvent
+    }
     var kunjunganChart = new Chart(kunjunganChartCanvas, {
         type: 'bar',
         data: {
@@ -84,19 +91,7 @@
                 }
             ]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            datasetFill: false,
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            },
-            onClick: kunjunganBarEvent
-        }
+        options: kunjunganChartOptions
     });
 
     var ctx = $('#barDetailChart');
@@ -215,7 +210,7 @@
                     }
                 ]
             },
-            options: kunjunganBarEvent
+            options: kunjunganChartOptions
         });
     });
 

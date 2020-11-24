@@ -52,7 +52,7 @@
         }
     ];
     var jml_pinjaman = [];
-    var detailChart;
+    var pinjamChart, detailChart;
 
     $.ajax({
         async: false,
@@ -91,38 +91,55 @@
         }
     });
 
-    var pinjamChartCanvas = $('#pinjamanChart').get(0).getContext('2d');
+    var pinjamChartCanvas = $('#pinjamanChart');
+    var pinjamChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        datasetFill: false,
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+        onClick: pinjamanBarEvent
+    }
     var pinjamChart = new Chart(pinjamChartCanvas, {
         type: 'bar',
         data: {
             labels: tahun_pinjaman,
             datasets: dataset_pinjaman
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            datasetFill: false,
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            },
-            onClick: pinjamanBarEvent
-        }
+        options: pinjamChartOptions
     });
+
+    var ctx = $('#barDetailChart');
+    var barOptions = {
+        responsive              : true,
+        maintainAspectRatio     : false,
+        datasetFill             : false,
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+    }
 
     function pinjamanBarEvent(event){
         console.log(event);
-        var activePoints = pinjamanChart.getElementsAtEvent(event);
+        var activePoints = pinjamChart.getElementsAtEvent(event);
         console.log(activePoints);
         if (activePoints[0]) {
             var chartData = activePoints[0]['_chart'].config.data;
             var idx = activePoints[0]['_index'];
 
             var label = chartData.labels[idx];
+            var dataSet = chartData.datasets[0].label;
             var value = chartData.datasets[0].data[idx];
+            alert(dataSet);
             alert(value);
             // $('#modal_list').text('Daftar Aset pada '+label);
             /* $.ajax({
@@ -145,24 +162,13 @@
 
     function rebuildChart(label, nama, jumlah)
     {
-        $('#barDetailChart').remove();
-        $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
-
-        var ctx = $('#barDetailChart').get(0).getContext('2d');
-        var barOptions = {
-            responsive              : true,
-            maintainAspectRatio     : false,
-            datasetFill             : false,
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            },
+        // $('#barDetailChart').remove();
+        // $('#chart-detail').append('<canvas id="barDetailChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>');
+        if(detailChart != null){
+            detailChart.destroy();
         }
 
-        var detailChart = new Chart(ctx, {
+        detailChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: label,
@@ -171,7 +177,7 @@
                         label               : nama,
                         backgroundColor     : 'rgba(60,141,188,0.9)',
                         borderColor         : 'rgba(60,141,188,0.8)',
-                        pointRadius          : false,
+                        pointRadius         : false,
                         pointColor          : '#3b8bba',
                         pointStrokeColor    : 'rgba(60,141,188,1)',
                         pointHighlightFill  : '#fff',
@@ -184,6 +190,81 @@
         });
         $('#modalDetail').modal('show');
     }
+
+    $('#filter').click(function(){
+        var awal = $('#tgl_awal').val();
+        var akhir = $('#tgl_akhir').val();
+
+        $.ajax({
+            async: false,
+            url: "{{ route('graph-kunjungan') }}",
+            type: "GET",
+            data: {tgl_awal: awal, tgl_akhir: akhir},
+            success: function(result){
+                console.log('per tahun');
+                console.log(result);
+                tahun_kunjungan = [];
+                jml_kunjungan = [];
+                for(var x in result){
+                    tahun_kunjungan.push(result[x].tahun);
+                    jml_kunjungan.push(result[x].total);
+                }
+            }
+        });
+
+        $.ajax({
+            async: false,
+            url: "{{ route('graph-pinjaman') }}",
+            type: "GET",
+            data: {tgl_awal: awal, tgl_akhir: akhir},
+            success: function(result){
+                // console.log(result);
+                tahun_pinjaman = [];
+                buku_pinjaman = [];
+                majalah_pinjaman = [];
+                software_pinjaman = [];
+                ilmiah_pinjaman = [];
+                for(var x in result){
+                    tahun_pinjaman.push(result[x].tahun);
+                    for(var z in result[x].data){
+                        // alert('total '+result[x].data[z].total);
+                        switch (result[x].data[z].id) {
+                            case 1:
+                                buku_pinjaman.push(result[x].data[z].total);
+                                break;
+                            case 2:
+                                majalah_pinjaman.push(result[x].data[z].total);
+                                break;
+                            case 3:
+                                software_pinjaman.push(result[x].data[z].total);
+                                break;
+                            case 4:
+                                ilmiah_pinjaman.push(result[x].data[z].total);
+                                break;
+                            default:
+                                break;
+                        }
+
+                    }
+                    dataset_pinjaman[0].data = buku_pinjaman;
+                    dataset_pinjaman[1].data = majalah_pinjaman;
+                    dataset_pinjaman[2].data = software_pinjaman;
+                    dataset_pinjaman[3].data = ilmiah_pinjaman;
+
+                }
+            }
+        });
+
+        pinjamChart.destroy();
+        pinjamChart = new Chart(pinjamChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: tahun_pinjaman,
+                datasets: dataset_pinjaman
+            },
+            options: pinjamChartOptions
+        });
+    });
 
 </script>
 @endpush
