@@ -17,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+// Route::group(['middleware' => ['auth:api']], function () {
+    Route::get('graph-data', 'Api\ChartController@graph_data')->name('graph-data');
+    Route::get('graph-kunjungan', 'Api\ChartController@graph_kunjungan')->name('graph-kunjungan');
+    Route::get('graph-pinjaman', 'Api\ChartController@graph_pinjaman')->name('graph-pinjaman');
+// });
