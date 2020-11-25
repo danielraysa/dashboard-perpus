@@ -9,19 +9,19 @@
             <div class="card-body">
                 {{-- <form action="{{ route('koleksi') }}" method="GET"> --}}
                 <div class="row">
-                    <div class="col-3">
+                    <div class="col-lg-3 col-12">
                         <div class="form-group">
                             <label>Tanggal awal</label>
                             <input type="date" name="tgl_awal" id="tgl_awal" class="form-control" required />
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-lg-3 col-12">
                         <div class="form-group">
                             <label>Tanggal akhir</label>
                             <input type="date" name="tgl_akhir" id="tgl_akhir" class="form-control" required />
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-lg-3 col-12">
                         <button type="button" id="filter" name="filter" class="btn btn-success"><i class="fas fa-search"></i> Filter</button>
                     </div>
                 </div>
@@ -40,6 +40,14 @@
 @endsection
 @push('js')
 <script>
+    $('#tgl_awal').change(function(){
+        var value = $(this).val();
+        $('#tgl_akhir').attr('min', value);
+    });
+    $('#tgl_akhir').change(function(){
+        var value = $(this).val();
+        $('#tgl_awal').attr('max', value);
+    });
 
     var tahun_koleksi = [];
     var jml_koleksi = [];
@@ -50,8 +58,8 @@
         url: "{{ route('graph-data') }}",
         type: "GET",
         success: function(result){
-            console.log('per tahun');
-            console.log(result);
+            // console.log('per tahun');
+            // console.log(result);
             for(var x in result){
                 tahun_koleksi.push(result[x].tahun);
                 jml_koleksi.push(result[x].total);
@@ -130,16 +138,16 @@
     function graphBarEvent(event){
         var awal = $('#tgl_awal').val();
         var akhir = $('#tgl_akhir').val();
-        var activePoints = barChart.getElementsAtEvent(event);
-        console.log(activePoints);
-        if (activePoints[0]) {
-            var chartData = activePoints[0]['_chart'].config.data;
-            var idx = activePoints[0]['_index'];
+        var activePoints = barChart.getElementAtEvent(event)[0];
+        // console.log(activePoints);
+        if (activePoints) {
+            var chartData = activePoints['_chart'].config.data;
+            var idx = activePoints['_index'];
+            var dt_idx = activePoints['_datasetIndex'];
 
             var label = chartData.labels[idx];
-            var value = chartData.datasets[0].data[idx];
+            var value = chartData.datasets[dt_idx].data[idx];
             // alert(value);
-            // $('#modal_list').text('Daftar Aset pada '+label);
             $.ajax({
                 url: "{{ route('graph-data') }}",
                 type: "GET",
@@ -205,45 +213,45 @@
     $('#filter').click(function(){
         var awal = $('#tgl_awal').val();
         var akhir = $('#tgl_akhir').val();
-
-        $.ajax({
-            async: false,
-            url: "{{ route('graph-data') }}",
-            type: "GET",
-            data: {tgl_awal: awal, tgl_akhir: akhir},
-            success: function(result){
-                console.log('per tahun');
-                console.log(result);
-                tahun_koleksi = [];
-                jml_koleksi = [];
-                for(var x in result){
-                    tahun_koleksi.push(result[x].tahun);
-                    jml_koleksi.push(result[x].total);
-                }
-            }
-        });
-
-        barChart.destroy();
-        barChart = new Chart(barChartCanvas, {
-            type: 'bar',
-            data: {
-                labels: tahun_koleksi,
-                datasets: [
-                    {
-                        label               : 'Koleksi',
-                        backgroundColor     : 'rgba(60,141,188,0.9)',
-                        borderColor         : 'rgba(60,141,188,0.8)',
-                        pointRadius          : false,
-                        pointColor          : '#3b8bba',
-                        pointStrokeColor    : 'rgba(60,141,188,1)',
-                        pointHighlightFill  : '#fff',
-                        pointHighlightStroke: 'rgba(60,141,188,1)',
-                        data                : jml_koleksi
+        if(awal != '' && akhir != ''){
+            $.ajax({
+                async: false,
+                url: "{{ route('graph-data') }}",
+                type: "GET",
+                data: {tgl_awal: awal, tgl_akhir: akhir},
+                success: function(result){
+                    // console.log(result);
+                    tahun_koleksi = [];
+                    jml_koleksi = [];
+                    for(var x in result){
+                        tahun_koleksi.push(result[x].tahun);
+                        jml_koleksi.push(result[x].total);
                     }
-                ]
-            },
-            options: barChartOptions
-        });
+                }
+            });
+
+            barChart.destroy();
+            barChart = new Chart(barChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: tahun_koleksi,
+                    datasets: [
+                        {
+                            label: 'Koleksi',
+                            backgroundColor: 'rgba(60,141,188,0.9)',
+                            borderColor: 'rgba(60,141,188,0.8)',
+                            pointRadius: false,
+                            pointColor: '#3b8bba',
+                            pointStrokeColor: 'rgba(60,141,188,1)',
+                            pointHighlightFill: '#fff',
+                            pointHighlightStroke: 'rgba(60,141,188,1)',
+                            data: jml_koleksi
+                        }
+                    ]
+                },
+                options: barChartOptions
+            });
+        }
     });
 
 </script>

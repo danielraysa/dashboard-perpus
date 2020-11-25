@@ -13,8 +13,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <canvas id="donutChart"
-                    style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
             </div>
             <!-- /.card-body -->
         </div>
@@ -29,8 +28,7 @@
             </div>
             <div class="card-body">
                 <div class="chart">
-                    <canvas id="kunjunganChart"
-                        style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    <canvas id="kunjunganChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
                 </div>
             </div>
             <!-- /.card-body -->
@@ -53,8 +51,7 @@
             </div>
             <div class="card-body">
                 <div class="chart">
-                    <canvas id="barChart"
-                        style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
                 </div>
             </div>
             <!-- /.card-body -->
@@ -70,8 +67,7 @@
             </div>
             <div class="card-body">
                 <div class="chart">
-                    <canvas id="pinjamanChart"
-                        style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                    <canvas id="pinjamanChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
                 </div>
             </div>
             <!-- /.card-body -->
@@ -210,6 +206,9 @@
         ]
     }
     var donutOptions = {
+        legend: {
+            display: false
+        },
         maintainAspectRatio : false,
         responsive : true,
         onClick: graphClickEvent
