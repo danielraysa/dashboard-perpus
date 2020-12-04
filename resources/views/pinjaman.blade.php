@@ -5,7 +5,6 @@
         <div class="card card-success">
             <div class="card-header">
                 <h3 class="card-title">Pinjaman Koleksi</h3>
-
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
                     </button>
@@ -15,14 +14,37 @@
                 <div class="row">
                     <div class="col-lg-3 col-12">
                         <div class="form-group">
-                            <label>Tanggal awal</label>
-                            <input type="date" name="tgl_awal" id="tgl_awal" class="form-control" required />
+                            <label>Tahun</label>
+                            <select id="tahun_pinjam" name="tahun_pinjam" class="form-control">
+                                <option selected disabled>-- Tahun --</option>
+                                <option value="2020">2020</option>
+                                <option value="2019">2019</option>
+                                <option value="2018">2018</option>
+                                <option value="2017">2017</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-lg-3 col-12">
                         <div class="form-group">
-                            <label>Tanggal akhir</label>
-                            <input type="date" name="tgl_akhir" id="tgl_akhir" class="form-control" required />
+                            <label>Koleksi</label>
+                            <select id="jenis_koleksi" name="jenis_koleksi" class="form-control">
+                                <option value="all" selected>Semua</option>
+                                <option value="1">Buku</option>
+                                <option value="2">Majalah</option>
+                                <option value="3">Software</option>
+                                <option value="4">Karya Ilmiah</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-12">
+                        <div class="form-group">
+                            <label>Prodi</label>
+                            <select id="prodi" name="prodi" class="form-control">
+                                <option value="all" selected>Semua</option>
+                                <option value="41010">S1 Sistem Informasi</option>
+                                <option value="41020">S1 Teknik Komputer</option>
+                                <option value="42010">S1 Desain Komunikasi Visual</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-lg-3 col-12">
@@ -44,21 +66,14 @@
 @endsection
 @push('js')
 <script>
-    $('#tgl_awal').change(function(){
-        var value = $(this).val();
-        $('#tgl_akhir').attr('min', value);
-    });
-    $('#tgl_akhir').change(function(){
-        var value = $(this).val();
-        $('#tgl_awal').attr('max', value);
-    });
-
+    var pinjamChartCanvas = $('#pinjamanChart');
+    var ctx = $('#barDetailChart');
     var tahun_pinjaman = [];
-    var buku_pinjaman = [];
-    var majalah_pinjaman = [];
-    var software_pinjaman = [];
-    var ilmiah_pinjaman = [];
-    var dataset_pinjaman = [
+    var bulan_pinjaman = [];
+    var dataset_pinjaman = [];
+    var jml_pinjaman = [];
+    var pinjamChart, detailChart;
+    /* var dataset_pinjaman = [
         {
             id: 1,
             label: 'Buku',
@@ -79,46 +94,19 @@
             label: 'Karya Ilmiah',
             backgroundColor: '#00c0ef',
         }
-    ];
-    var jml_pinjaman = [];
-    var pinjamChart, detailChart;
+    ]; */
 
     $.ajax({
         async: false,
         url: "{{ route('graph-pinjaman') }}",
         type: "GET",
         success: function(result){
-            // console.log(result);
-            for(var x in result){
-                tahun_pinjaman.push(result[x].tahun);
-                for(var z in result[x].data){
-                    // alert('total '+result[x].data[z].total);
-                    switch (result[x].data[z].id) {
-                        case 1:
-                            buku_pinjaman.push(result[x].data[z].total);
-                            break;
-                        case 2:
-                            majalah_pinjaman.push(result[x].data[z].total);
-                            break;
-                        case 3:
-                            software_pinjaman.push(result[x].data[z].total);
-                            break;
-                        case 4:
-                            ilmiah_pinjaman.push(result[x].data[z].total);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                dataset_pinjaman[0].data = buku_pinjaman;
-                dataset_pinjaman[1].data = majalah_pinjaman;
-                dataset_pinjaman[2].data = software_pinjaman;
-                dataset_pinjaman[3].data = ilmiah_pinjaman;
-            }
+            console.log(result);
+            bulan_pinjaman = result.bulan;
+            dataset_pinjaman = result.dataset;
         }
     });
 
-    var pinjamChartCanvas = $('#pinjamanChart');
     var pinjamChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -130,18 +118,17 @@
                 }
             }]
         },
-        onClick: pinjamanBarEvent
+        // onClick: pinjamanBarEvent
     }
     var pinjamChart = new Chart(pinjamChartCanvas, {
         type: 'bar',
         data: {
-            labels: tahun_pinjaman,
+            labels: bulan_pinjaman,
             datasets: dataset_pinjaman
         },
         options: pinjamChartOptions
     });
 
-    var ctx = $('#barDetailChart');
     var barOptions = {
         responsive              : true,
         maintainAspectRatio     : false,
@@ -154,6 +141,31 @@
             }]
         },
     }
+
+    $('#filter').click(function(){
+        alert('filtering');
+        var tahun = $('#tahun_pinjam').val();
+        var jenis = $('#jenis_koleksi').val();
+        var prodi = $('#prodi').val();
+        $.ajax({
+            url: "{{ route('graph-pinjaman') }}",
+            type: "GET",
+            data: {tahun: tahun, jenis_koleksi: jenis, prodi: prodi},
+            success: function(result){
+                // rebuild chart
+                console.log(result);
+                pinjamChart.destroy();
+                pinjamChart = new Chart(pinjamChartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: result.bulan,
+                        datasets: result.dataset
+                    },
+                    options: pinjamChartOptions
+                });
+            }
+        })
+    });
 
     function pinjamanBarEvent(event){
         var awal = $('#tgl_awal').val();
@@ -217,65 +229,6 @@
         });
         $('#modalDetail').modal('show');
     }
-
-    $('#filter').click(function(){
-        var awal = $('#tgl_awal').val();
-        var akhir = $('#tgl_akhir').val();
-        if(awal != '' && akhir != ''){
-            $.ajax({
-                async: false,
-                url: "{{ route('graph-pinjaman') }}",
-                type: "GET",
-                data: {tgl_awal: awal, tgl_akhir: akhir},
-                success: function(result){
-                    // console.log(result);
-                    tahun_pinjaman = [];
-                    buku_pinjaman = [];
-                    majalah_pinjaman = [];
-                    software_pinjaman = [];
-                    ilmiah_pinjaman = [];
-                    for(var x in result){
-                        tahun_pinjaman.push(result[x].tahun);
-                        for(var z in result[x].data){
-                            // alert('total '+result[x].data[z].total);
-                            switch (result[x].data[z].id) {
-                                case 1:
-                                    buku_pinjaman.push(result[x].data[z].total);
-                                    break;
-                                case 2:
-                                    majalah_pinjaman.push(result[x].data[z].total);
-                                    break;
-                                case 3:
-                                    software_pinjaman.push(result[x].data[z].total);
-                                    break;
-                                case 4:
-                                    ilmiah_pinjaman.push(result[x].data[z].total);
-                                    break;
-                                default:
-                                    break;
-                            }
-
-                        }
-                        dataset_pinjaman[0].data = buku_pinjaman;
-                        dataset_pinjaman[1].data = majalah_pinjaman;
-                        dataset_pinjaman[2].data = software_pinjaman;
-                        dataset_pinjaman[3].data = ilmiah_pinjaman;
-
-                    }
-                }
-            });
-
-            pinjamChart.destroy();
-            pinjamChart = new Chart(pinjamChartCanvas, {
-                type: 'bar',
-                data: {
-                    labels: tahun_pinjaman,
-                    datasets: dataset_pinjaman
-                },
-                options: pinjamChartOptions
-            });
-        }
-    });
 
 </script>
 @endpush

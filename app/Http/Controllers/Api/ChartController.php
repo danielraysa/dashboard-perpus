@@ -9,6 +9,7 @@ use App\Koleksi;
 use App\Kunjungan;
 use App\Pinjaman;
 
+setlocale(LC_TIME, 'id_ID');
 class ChartController extends Controller
 {
     public function graph_data(Request $request)
@@ -101,6 +102,98 @@ class ChartController extends Controller
             
         }
         // dd($pinjaman);
+        return response()->json($pinjaman);
+    }
+    
+    public function graph_pinjaman_baru(Request $request)
+    {
+        // dd($request->all());
+        // $tahun = date('Y');
+        $tahun = '2018';
+        if($request->tahun){
+            $tahun = $request->tahun;
+        }
+
+        $jenis_koleksi = collect([
+            ['id'=>1,'label'=> 'Buku','color' => '#f56954',], 
+            ['id'=>2,'label'=> 'Majalah','color' => '#f39c12',],
+            ['id'=>3,'label'=> 'Software','color' => '#00a65a',], 
+            ['id'=>4,'label'=> 'Karya Ilmiah','color' => '#00c0ef',],
+        ]);
+
+        $bulan = array();
+        for($m = 1; $m <= 12; $m++){
+            array_push($bulan, strftime("%B", mktime(0, 0, 0, $m, 12)));
+        }
+        $arr_temp = array();
+        if(isset($request->jenis_koleksi) && $request->jenis_koleksi != 'all'){
+            if(isset($request->prodi) && $request->prodi != 'all'){
+                for($i = 1; $i <= count($bulan); $i++){
+                    $pinjaman_temp = Pinjaman::select(DB::raw("COUNT(*) AS total"))->whereRaw("SUBSTR(nim, 3, 5) = '".$request->prodi."'")->whereRaw("MONTH(tgl_pinjam) = '".$i."'")->whereRaw("YEAR(tgl_pinjam) = '".$tahun."'")->where('id', $request->jenis_koleksi)->get()->first();
+                    array_push($arr_temp, $pinjaman_temp->total);
+                }
+            }else{
+                for($i = 1; $i <= count($bulan); $i++){
+                    $pinjaman_temp = Pinjaman::select(DB::raw("COUNT(*) AS total"))->whereRaw("MONTH(tgl_pinjam) = '".$i."'")->whereRaw("YEAR(tgl_pinjam) = '".$tahun."'")->where('id', $request->jenis_koleksi)->get()->first();
+                    array_push($arr_temp, $pinjaman_temp->total);
+                }
+            }
+            $dataset = [
+                'label' => 'Jumlah',
+                'data' => $arr_temp,
+                'backgroundColor' => '#00c0ef',
+            ];
+            $pinjaman = [
+                'bulan' => $bulan,
+                'dataset' => [
+                    $dataset
+                ],
+            ];
+            return response()->json($pinjaman);
+        }
+        if(isset($request->prodi) && $request->prodi != 'all'){
+            $new_dataset = $jenis_koleksi->map(function ($item) use ($request, $bulan, $tahun) {
+                $arr_temp = array();
+                for($i = 1; $i <= count($bulan); $i++){
+                    $pinjaman_temp = Pinjaman::select(DB::raw("COUNT(*) AS total"))->whereRaw("SUBSTR(nim, 3, 5) = '".$request->prodi."'")->whereRaw("MONTH(tgl_pinjam) = '".$i."'")->whereRaw("YEAR(tgl_pinjam) = '".$tahun."'")->where('id', $item['id'])->get()->first();
+                    array_push($arr_temp, $pinjaman_temp->total);
+                }
+                $jenis = [
+                    'id' => $item['id'],
+                    'label' => $item['label'],
+                    'data' => $arr_temp,
+                    'backgroundColor' => $item['color'],
+                ];
+                return $jenis;
+            });
+            // dd($new_dataset);
+        }else{
+            $new_dataset = $jenis_koleksi->map(function ($item, $key) use ($bulan, $tahun) {
+                $arr_temp = array();
+                for($i = 1; $i <= count($bulan); $i++){
+                    $pinjaman_temp = Pinjaman::select(DB::raw("COUNT(*) AS total"))->whereRaw("MONTH(tgl_pinjam) = '".$i."'")->whereRaw("YEAR(tgl_pinjam) = '".$tahun."'")->where('id', $item['id'])->get()->first();
+                    array_push($arr_temp, $pinjaman_temp->total);
+                }
+                $jenis = [
+                    'id' => $item['id'],
+                    'label' => $item['label'],
+                    'data' => $arr_temp,
+                    'backgroundColor' => $item['color'],
+                ];
+                return $jenis;
+            });
+        }
+        // dd($new_dataset);
+        $pinjaman = [
+            'bulan' => $bulan,
+            'dataset' => $new_dataset,
+            /* 'dataset' => [
+                $dataset_buku,
+                $dataset_majalah,
+                $dataset_software,
+                $dataset_karya_ilmiah
+            ], */
+        ];
         return response()->json($pinjaman);
     }
 }
